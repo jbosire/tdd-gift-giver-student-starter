@@ -1,34 +1,35 @@
-const e = require('express')
+//const e = require('express')
 const express = require('express')
 const app = express()
 const morgan = require("morgan")
 const router = require("./routes/gift-exchange")
+const { NotFoundError } = require('./utils/errors')
 
 app.use(morgan("tiny"))
 app.use(express.json())
+
 app.get('/', (req,res) => {
     res.status(200).json({"ping":"pong"})
 })
 
 app.use("/gift-exchange", router)
 
-function generic(error,req,res,next){
-   var stat = error.status ? error.status :  500;
-   var msg = error.message ? error.message : "Something went wrong with the application";
+app.use((req,res,next) =>{
+    return next(new NotFoundError)
+})
+
+app.use((error,req,res,next) => {
+    const status = error.status || 500;
+    const message = error.message 
+
+    return res.status(status).json({
+        error:{message,status}
+    })
+
+})
 
 
-   res.status(stat).json({
-    error : {
-        status : stat,
-        message : msg,
 
-    },
-
-   })
-     
-   
-
-}
 
 
 module.exports = app;
